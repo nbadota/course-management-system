@@ -3,6 +3,7 @@ import {createContext, useReducer, FC} from 'react';
 
 interface User {
   user: string;
+  grade: number;
 }
 
 interface Action {
@@ -15,6 +16,7 @@ const AuthContext = createContext({authState: null, authDispatch: null});
 const initialStateUser:User = localStorage.getItem('user') ?
   JSON.parse(localStorage.getItem('user')) : {
     user: '',
+    grade: 0,
   };
 
 
@@ -24,6 +26,7 @@ const authReducer = (state: User, action:Action) => {
       const loginState = {
         ...state,
         user: action.payload.user,
+        grade: action.payload.grade,
       };
       localStorage.setItem('user', JSON.stringify(loginState));
       return loginState;
@@ -31,8 +34,9 @@ const authReducer = (state: User, action:Action) => {
       const logoutState = {
         ...state,
         user: '',
+        grade: 0,
       };
-      localStorage.setItem('user', JSON.stringify(logoutState));
+      localStorage.clear();
       return logoutState;
     default:
       return {

@@ -1,21 +1,30 @@
 import React from 'react';
-import {useRoutes} from 'react-router-dom';
+import {useRoutes} from 'react-router';
+import {SWRConfig} from 'swr';
+import {message} from 'antd';
 import {routes, onRouteBefore} from './router';
 import {setRouteBefore, transformRoutes} from './router/utils';
 import {AuthProvider} from './context/authContext';
 import {CourtProvider} from './context/courtContext';
 import './App.css';
 
-
 function App() {
-  const Element = useRoutes(transformRoutes(routes));
+  const arr = transformRoutes(routes);
+  const Element = useRoutes(arr);
   setRouteBefore(onRouteBefore);
+
   return (
-    <CourtProvider>
-      <AuthProvider>
-        {Element}
-      </AuthProvider>
-    </CourtProvider>
+    <SWRConfig value={{
+      onError: (error, key) => {
+        message.error(error.message || error);
+      },
+    }}>
+      <CourtProvider>
+        <AuthProvider>
+          {Element}
+        </AuthProvider>
+      </CourtProvider>
+    </SWRConfig>
   );
 }
 

@@ -1,26 +1,29 @@
 import {Route, Meta} from './type';
 import Cookies from 'js-cookie';
+import {transformRoutesToMenus} from '../common/utils/user';
+import Home from '../views/home/home';
 
 // 全局路由配置
 const routes:Route[] = [
   {
     path: '/',
-    redirect: '/home/user-list',
+    redirect: '/home/court-calendar',
     meta: {
       inMenu: false,
     },
   },
   {
-    path: '/home',
-    component: () => import(/* webpackChunkName: "home" */ '../views/home/home'),
+    path: '/home', // 首页不需要懒加载，否则会导致不必要刷新。
+    component: Home, // () => import(/* webpackChunkName: "home" */ '../views/home/home'),
     meta: {
       title: '首页',
       needLogin: true,
       inMenu: false,
+      lazy: false,
     },
     children: [
       {
-        component: () => import(/* webpackChunkName: "userList" */ '../views/userManagement/userList/userList'),
+        component: () => import(/* webpackChunkName: "courtInfo" */ '../views/courtManagement/courtInfo/courtInfo'),
         index: true,
         meta: {
           inMenu: false,
@@ -28,19 +31,46 @@ const routes:Route[] = [
       },
       {
         path: 'court-info',
-        component: () => import(/* webpackChunkName: "userList" */ '../views/courtManagement/courtInfo/courtInfo'),
+        component: () => import(/* webpackChunkName: "courtInfo" */ '../views/courtManagement/courtInfo/courtInfo'),
         meta: {
           title: '基本信息',
-          inMenu: '场地管理',
+          inMenu: '场管管理',
           icon: 'court',
         },
       },
       {
         path: 'pitch',
-        component: () => import(/* webpackChunkName: "userList" */ '../views/courtManagement/pitch/pitch'),
+        component: () => import(/* webpackChunkName: "pitch" */ '../views/courtManagement/pitch/pitch'),
         meta: {
           title: '场地设置',
-          inMenu: '场地管理',
+          inMenu: '场管管理',
+        },
+      },
+      {
+        path: 'staff',
+        component: () =>
+          import(/* webpackChunkName: "staff" */ '../views/courtManagement/staffManagement/staffManagement'),
+        meta: {
+          title: '员工管理',
+          inMenu: '场管管理',
+        },
+      },
+      {
+        path: 'court-calendar',
+        component: () =>
+          import(/* webpackChunkName: "courtCalendar" */ '../views/courtManagement/courtCalendar/courtCalendar'),
+        meta: {
+          title: '场地日历',
+          inMenu: '场管管理',
+        },
+      },
+      {
+        path: 'permission',
+        component: () =>
+          import(/* webpackChunkName: "permission" */ '../views/courtManagement/permission/permission'),
+        meta: {
+          title: '权限管理',
+          inMenu: '场管管理',
         },
       },
       {
@@ -62,7 +92,8 @@ const routes:Route[] = [
       },
       {
         path: 'class-schedule',
-        component: () => import(/* webpackChunkName: "userList" */ '../views/userManagement/userList/userList'),
+        component: () =>
+          import(/* webpackChunkName: "classSchedule" */ '../views/courseManagement/classSchedule/classSchedule'),
         meta: {
           title: '课程表',
           inMenu: '课程管理',
@@ -70,12 +101,31 @@ const routes:Route[] = [
         },
       },
       {
-        path: 'group-classes',
-        component: () => import(/* webpackChunkName: "userList" */ '../views/userManagement/userList/userList'),
+        path: 'course-list',
+        component: () =>
+          import(/* webpackChunkName: "courseList" */ '../views/courseManagement/courseList/courseList'),
         meta: {
-          title: '团课列表',
+          title: '课程列表',
           inMenu: '课程管理',
           icon: 'course',
+        },
+      },
+      {
+        path: 'card-orders',
+        component: () => import(/* webpackChunkName: "cardOrders" */ '../views/order/cardOrder/cardOrder'),
+        meta: {
+          title: '售卡订单',
+          inMenu: '订单管理',
+          icon: 'order',
+        },
+      },
+      {
+        path: 'course-orders',
+        component: () => import(/* webpackChunkName: "courseOrders" */ '../views/order/courseOrder/courseOrder'),
+        meta: {
+          title: '售课订单',
+          inMenu: '订单管理',
+          icon: 'order',
         },
       },
     ],
@@ -120,7 +170,10 @@ const onRouteBefore = ({pathname, meta}:{pathname: string, meta: Meta}) => {
   return pathname;
 };
 
+const menuList = transformRoutesToMenus(routes);
+
 export {
   routes,
   onRouteBefore,
+  menuList,
 };

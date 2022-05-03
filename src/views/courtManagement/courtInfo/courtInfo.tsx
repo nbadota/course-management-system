@@ -1,46 +1,41 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Form, Input, Button, TimePicker, Radio, Divider, message} from 'antd';
+import {Form, Input, Button, TimePicker, Radio, Divider, message, Modal} from 'antd';
 import moment from 'moment';
+import {useSWRConfig} from 'swr';
 import {request} from '../../../common/utils/request';
-// import {AuthContext} from '../../../context/authContext';
 import {CourtContext} from '../../../context/courtContext';
+import {menuList} from '../../../router';
+import {useCourtInfo} from '../../../swrHooks/courtInfo';
 
 function CourtInfo() {
+  const {mutate} = useSWRConfig();
   const [form] = Form.useForm();
-  // const {authState} = useContext(AuthContext);
-  const {courtDispatch, courtState} = useContext(CourtContext);
+  const {courtInfo} = useCourtInfo();
+  const {courtState} = useContext(CourtContext);
   const [data, setData] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
   useEffect(() => {
     initForm();
-  }, []);
+  }, [courtInfo]);
 
-  const initForm = async () => {
-    try {
-      const res = await request.get('/api/court/isExist');
-      if (res.data) {
-        setShowForm(true);
-        const FieldsValue = {
-          ...res.data,
-          ...res.data?.info,
-          'opening': (res.data?.openTime && res.data?.closeTime) ? [
-            moment(res.data?.openTime, 'HH:mm:ss'),
-            moment(res.data?.closeTime, 'HH:mm:ss'),
-          ] : null,
-        };
-        delete FieldsValue.info;
-        form.setFieldsValue(FieldsValue);
-        setData(FieldsValue);
-        courtDispatch({
-          type: 'ChangeCourt',
-          payload: {
-            courtId: res.data.id,
-          },
-        });
-      }
-    } catch (e) {
-      message.error(e.message);
+  const initForm = () => {
+    if (courtInfo?.length) {
+      setShowForm(true);
+      const res = courtInfo.find((item:any) => item.id === courtState.courtId);
+      const FieldsValue = {
+        ...res,
+        ...res?.info,
+        'opening': (res?.openTime && res?.closeTime) ? [
+          moment(res?.openTime, 'HH:mm:ss'),
+          moment(res?.closeTime, 'HH:mm:ss'),
+        ] : null,
+      };
+      delete FieldsValue.info;
+      form.setFieldsValue(FieldsValue);
+      setData(FieldsValue);
     }
   };
 
@@ -58,13 +53,28 @@ function CourtInfo() {
       await request.post('/api/court/update', {
         value,
         id: courtState.courtId,
+        menuList,
       });
-      await initForm();
+      await mutate('api/court/isExist');
       message.success('更新成功');
     } catch (e) {
       message.error(e.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAdd = async (fieldsValue: any) => {
+    try {
+      await request.post('/api/court/update', {
+        value: fieldsValue,
+        menuList,
+      });
+      await mutate('api/court/isExist');
+      message.success('添加成功');
+      setShowModal(false);
+    } catch (e) {
+      message.error(e.message);
     }
   };
 
@@ -84,6 +94,7 @@ function CourtInfo() {
               label='场馆名称'
               name='name'
               style={{width: '500px'}}
+              rules={[{required: true, message: '请填写场馆名称'}]}
             >
               <Input/>
             </Form.Item>
@@ -91,6 +102,7 @@ function CourtInfo() {
               label='场馆地址'
               name='location'
               style={{width: '500px'}}
+              rules={[{required: true, message: '请填写场馆地址'}]}
             >
               <Input/>
             </Form.Item>
@@ -154,14 +166,58 @@ function CourtInfo() {
               <Button type="primary" htmlType="submit" loading={loading} style={{marginRight: '30px'}}>
                 提交更改
               </Button>
-              <Button type="primary" onClick={() => {
+              <Button style={{marginRight: '30px'}} type="primary" onClick={() => {
                 form.resetFields();
                 form.setFieldsValue(data);
               }}>
                 重置表单
               </Button>
+              <Button type="primary" onClick={() => setShowModal(true)}>
+                添加场馆
+              </Button>
             </Form.Item>
           </Form>
+          <Modal
+            visible={showModal}
+            style={{top: '150px'}}
+            footer={null}
+            closable={false}
+            title="请填写场馆基本信息"
+            width={400}
+          >
+            <Form
+              onFinish={handleAdd}
+            >
+              <Form.Item
+                label='场馆名称'
+                name='name'
+                style={{width: '300px'}}
+                rules={[{required: true, message: '请填写场馆名称'}]}
+              >
+                <Input/>
+              </Form.Item>
+              <Form.Item
+                label='场馆地址'
+                name='location'
+                style={{width: '300px'}}
+                rules={[{required: true, message: '请填写场馆地址'}]}
+              >
+                <Input/>
+              </Form.Item>
+              <Form.Item
+                style={{marginLeft: '40%'}}
+              >
+                <Button type="primary" onClick={() => {
+                  setShowModal(false);
+                }}>
+                  取消
+                </Button>
+                <Button type="primary" htmlType="submit" style={{marginLeft: '40px'}}>
+                  确认
+                </Button>
+              </Form.Item>
+            </Form>
+          </Modal>
         </section>
       ) :
     (

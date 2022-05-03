@@ -2,7 +2,8 @@ interface Meta {
   title?: string;
   inMenu?: string | boolean;
   needLogin?: boolean;
-  icon?: 'user' | 'course' | 'court';
+  icon?: 'user' | 'course' | 'court' | 'order';
+  lazy?: boolean;
 }
 
 interface Route {

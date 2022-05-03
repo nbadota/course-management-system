@@ -1,8 +1,8 @@
 import React from 'react';
-import {Navigate, RouteObject} from 'react-router-dom';
+import {Navigate, RouteObject} from 'react-router';
 import {lazyLoad} from './lazyLoad';
 import {Route} from './type';
-
+import Home from '../views/home/home';
 
 let handleRouteBefore: any = null;
 

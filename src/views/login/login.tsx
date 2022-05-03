@@ -1,12 +1,13 @@
 import React, {useEffect, useState, useRef, useContext} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Input, Button, Typography, message} from 'antd';
+import {Input, Button, Typography, message, Image} from 'antd';
 import {PhoneOutlined, CodeOutlined} from '@ant-design/icons';
 
 import {request} from '../../common/utils/request';
 import style from './login.module.css';
 import {ErrCode} from '../../common/constant/errCode';
 import {AuthContext} from '../../context/authContext';
+import {menuList} from '../../router';
 
 const {Title} = Typography;
 
@@ -17,6 +18,7 @@ function Login() {
   const timer = useRef(null);
   const {authDispatch} = useContext(AuthContext);
   const navigate = useNavigate();
+
   useEffect(()=>{
     if (isShow.count === 0) {
       clearInterval(timer.current);
@@ -66,23 +68,30 @@ function Login() {
       return;
     }
     try {
-      const res = await request.post('/api/user/login', {phoneNumber: phoneNum, verifyCode});
-      message.success('登录成功');
+      const res = await request.post('/api/user/login', {phoneNumber: phoneNum, verifyCode, menuList});
+      if (res.data.grade === 0) {
+        message.warn('您没有登录权限');
+        return;
+      }
+      message.success(res.data.message);
       clearInterval(timer.current);
-      navigate('/home/user-list', {replace: true});
       authDispatch({
         type: 'LOGIN',
         payload: {
-          user: res.data.phoneNumber,
+          user: res.data.staff || res.data.manager,
+          grade: res.data.grade,
         },
       });
+      navigate('/home/court-calendar', {replace: true});
     } catch (e) {
       message.error(e.message);
     }
   };
+
   return (
     <section className={style.Content}>
-      <Title>欢迎登录LMZ后台</Title>
+      <Image preview={false} width={150} src={require('./nativebaselogo.png')}/>
+      <Title className={style.title}>欢迎登录LMZ后台</Title>
       <section className={style.alignCenter}>
         <Input style={{width: '300px', marginBottom: '30px'}}
           placeholder="请输入手机号"
@@ -103,7 +112,7 @@ function Login() {
         <Button type="primary"
           style={{position: 'absolute', right: '80px', bottom: '20px'}}
           onClick={login}
-        >登录</Button>
+        >登录/注册</Button>
       </section>
     </section>
   );

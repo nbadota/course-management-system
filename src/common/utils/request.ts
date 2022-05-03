@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const request = axios.create({
   withCredentials: true,
-  timeout: 50000,
+  timeout: 600000,
 });
 
 request.interceptors.response.use(function(response) {
