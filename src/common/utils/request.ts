@@ -1,8 +1,10 @@
 import axios from 'axios';
+import {isPrd} from './ENV';
 
 const request = axios.create({
   withCredentials: true,
   timeout: 600000,
+  baseURL: isPrd ? 'http://47.98.208.69:3000' : '',
 });
 
 request.interceptors.response.use(function(response) {

@@ -4,7 +4,7 @@ import {UploadOutlined} from '@ant-design/icons';
 import {UploadListType} from 'antd/es/upload/interface';
 import {request} from '../../../common/utils/request';
 import {CourtContext} from '../../../context/courtContext';
-import {isDEV, imgHostDev, imgHostPrd} from '../../../common/utils/ENV';
+import {imgHost} from '../../../common/utils/ENV';
 
 function StaffManagement() {
   const {Option} = Select;
@@ -138,7 +138,7 @@ function StaffManagement() {
           src = text.path.substring(index).replace(/\\/g, '/');
         }
         return (
-          <Avatar size={64} src={<Image src={isDEV ? `${imgHostDev}/${src}` : `${imgHostPrd}/${src}`}/>}/>
+          <Avatar size={64} src={<Image src={`${imgHost}/${src}`}/>}/>
         );
       },
     },
